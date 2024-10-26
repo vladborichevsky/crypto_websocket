@@ -9,11 +9,10 @@ async function getData(url) {
     if(!response.ok) throw new Error('Возникла ошибка в получении данных через fetch')
 
     return response
-    } catch (error) {
-      console.error(error)
-    }
+  } catch (error) {
+    console.error(error)
+  }
 }
-
 
 export const getDataForAvailableCoinList = async () => {
   const response = await getData(`https://min-api.cryptocompare.com/data/blockchain/list?api_key=${API_KEY}`)

@@ -1,7 +1,8 @@
 
 <template>
-  <div class="spinner"></div>
+  <div class="spinner min-h-8 text-2xl sm:min-h-24 sm:after:text-6xl"></div>
 </template>
+
 
 <script>
   export default {
@@ -12,7 +13,7 @@
 
 <style scoped>
   .spinner {
-    color: var(--white-color);
+    color: #ffff;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -22,7 +23,6 @@
     animation: changeContent .8s linear infinite;
     display: block;
     content: "⠋";
-    font-size: 60px;
   }
 
   @keyframes changeContent {

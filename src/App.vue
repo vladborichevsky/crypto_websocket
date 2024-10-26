@@ -1,9 +1,9 @@
 
 <template>
-  <div class="app_wrapper">
-    <div class="container">
+  <div class="w-full min-h-screen bg-backgroundColor">
+    <div class="w-11/12 mx-auto py-3.5">
 
-      <header class="header">Crypto Converter</header>
+      <header class="font-serif text-3xl font-bold text-amber-400 sm:text-5xl">Crypto Converter</header>
 
       <add-ticker-block
         :nonExistentTickerError="nonExistentTickerError"
@@ -21,149 +21,113 @@
 
 
 
-<script>
-import AddTickerBlock from '@/components/AddTickerBlock.vue'
-import TickersBlock from '@/components/TickersBlock.vue'
+<script setup>
+  import { ref, watch, computed, onMounted } from 'vue';
 
-import { getDataByWebSocket, sendNewMessageToWebSocketToSub, sendNewMessageToWebSocketToSubRemove } from './WebSocket.js';
-import { getDataForAvailableCoinList } from './api.js'
+  import AddTickerBlock from '@/components/AddTickerBlock.vue'
+  import TickersBlock from '@/components/TickersBlock.vue'
 
-export default {
-    components: { AddTickerBlock, TickersBlock },
+  import { getDataByWebSocket, sendNewMessageToWebSocketToSub, sendNewMessageToWebSocketToSubRemove } from './WebSocket.js';
+  import { getDataForAvailableCoinList } from './api.js'
 
-    data() {
-      return {
-        tickerList: [],
-        availableCoinList: [],
-        sameTicker: 'false',
-        nonExistentTickerError: '',
-      }
-    },
+  const tickerList = ref([]) 
+  const availableCoinList = ref([])
+  const sameTicker = ref('false')
+  const nonExistentTickerError = ref('') 
 
-    methods: {
-      addTicker(ticker) {
-        // проверка, чтобы нельзя было добавить уже существующий тикер
-        if (this.currentCoinList.includes(ticker)) {
-          this.sameTicker = ticker
-          setTimeout(() => {
-            this.sameTicker = 'false'
-          }, 3000)
+  const currentCoinList = computed(() => {
+    let array = []
+    tickerList.value.forEach(item => {
+      array.push(item.name)
+    }) 
 
-          return
-        }
+    return array
+  }) 
 
-        if(!this.availableCoinList.includes(ticker)) {
-          this.nonExistentTickerError = 'Такой криптовалюты не существует'
-
-          setTimeout(() => {
-            this.nonExistentTickerError = ''
-          }, 3000)
-
-          return
-        }
-
-        this.tickerList.push({
-          'name': ticker,
-          'price': ''
-        })
-
-        sendNewMessageToWebSocketToSub(this.currentCoinList)
-      },
-
-      updateTickers() {
-        setInterval( ()=> {
-          let result = getDataByWebSocket()
-
-          this.tickerList.forEach( (item, index) => {
-            Object.keys(result).forEach(el => {
-              if(item.name == el) {
-                this.tickerList[index].price = result[el]?.toFixed()
-              }
-            })
-          })
-        }, 1000)
-        
-
-      },
-
-      deleteTicker(ticker) {
-        this.tickerList = this.tickerList.filter(item => item.name != ticker)
-
-        sendNewMessageToWebSocketToSubRemove(ticker)
-      },
-
-      async updateAvailableCoinList() {
-        this.availableCoinList = await getDataForAvailableCoinList()
-      }
-    },
-
-    watch: {
-      tickerList: {
-          handler() {
-            if(this.tickerList.length > 0) {
-              this.updateTickers()
-            }
-          },
-          deep: true
-        },
-
-      currentCoinList: {
-        handler() {
-          if (this.currentCoinList.length == 0) {
-            window.history.pushState(null, document.title, `${window.location.pathname}`)
-          } else {
-            window.history.pushState(null, document.title, `${window.location.pathname}?cur_coin_list=${this.currentCoinList}`)
-          }
-        },
-        deep: true
-      }  
-    },
-
-    computed: {
-      currentCoinList() {
-        let array = []
-        this.tickerList.forEach(item => {
-          array.push(item.name)
-        }) 
-
-        return array
-      }
-    },
-
-    async mounted() {   
-      await this.updateAvailableCoinList()
-
-      const windowData = Object.fromEntries(
-        new URL(window.location).searchParams.entries()
-      );
-
-      if (windowData.cur_coin_list) {
-        windowData.cur_coin_list.split(',').forEach(item => {
-          this.addTicker(item)
-        })
-      } 
+  const addTicker = (ticker) => {
+    // проверка, чтобы нельзя было добавить уже существующий тикер
+    if (currentCoinList.value.includes(ticker)) {
+      sameTicker.value = ticker
+      setTimeout(() => {
+        sameTicker.value = 'false'
+      }, 3000)
+      return false
     }
+
+    if(!availableCoinList.value.includes(ticker)) {
+      nonExistentTickerError.value = 'Такой криптовалюты не существует'
+
+      setTimeout(() => {
+        nonExistentTickerError.value = ''
+      }, 3000)
+
+      return
+    }
+
+    tickerList.value.push({
+      'name': ticker,
+      'price': ''
+    })
+
+    sendNewMessageToWebSocketToSub(currentCoinList.value)
   }
 
+  const updateTickers = () => {
+    setInterval( ()=> {
+      let result = getDataByWebSocket()
+
+      tickerList.value.forEach( (item, index) => {
+        Object.keys(result).forEach(el => {
+          if(item.name == el) {
+            tickerList.value[index].price = result[el]?.toFixed()
+          }
+        })
+      })
+    }, 1000)
+  }
+
+  const deleteTicker = (ticker) => {
+    tickerList.value = tickerList.value.filter(item => item.name != ticker)
+    sendNewMessageToWebSocketToSubRemove(ticker)
+  }
+
+  const updateAvailableCoinList = async () => {
+    availableCoinList.value = await getDataForAvailableCoinList()
+  }
+
+  watch(
+    () => tickerList.value,
+    (value, newValue) => {
+      if(tickerList.value.length > 0) {
+        updateTickers()
+      }
+    },
+    { deep: true }
+  )
+
+  watch(
+    () => currentCoinList.value,
+    (value, newValue) => {
+      if (currentCoinList.value.length == 0) {
+        window.history.pushState(null, document.title, `${window.location.pathname}`)
+      } else {
+        window.history.pushState(null, document.title, `${window.location.pathname}?cur_coin_list=${currentCoinList.value}`)
+      }
+    },
+    { deep: true }
+  )
+
+  onMounted( async () => {
+    await updateAvailableCoinList()
+
+    const windowData = Object.fromEntries(
+      new URL(window.location).searchParams.entries()
+    )
+
+    if (windowData.cur_coin_list) {
+      windowData.cur_coin_list.split(',').forEach(item => {
+        addTicker(item)
+      })
+    } 
+  })
 </script>
-
-
-
-<style scoped>
-  .app_wrapper {
-    width: 100vw;
-    min-height: 100vh;
-    background-color: var(--background-color);
-  }
-
-  .container {
-    margin: 0 auto;
-    width: 1200px;
-    padding: 10px 0;
-  }
-
-  .header {
-    font-family: 'Bungee Spice', sans-serif;
-    font-size: 50px;
-  }
-</style>

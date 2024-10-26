@@ -21,11 +21,9 @@ socket.addEventListener('message', (event) => {
   }
 }); 
 
-
 export const getDataByWebSocket = () => {
   return resultData
 }
-
 
 export const sendNewMessageToWebSocketToSub = (tickerList) => {
   const messageArr = []

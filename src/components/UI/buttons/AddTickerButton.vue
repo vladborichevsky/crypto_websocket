@@ -1,48 +1,25 @@
 <template>
   <button
     @click="addTickerEmit()"
-    class="btn_convert">
+    class="w-48 uppercase cursor-pointer rounded-sm py-1 px-4 m-1.5 border-2 border-mainGreen bg-mainGreen text-white text-base lg:hover:transition-all lg:hover:border-lightGreen lg:hover:bg-lightGreen disabled:cursor-not-allowed disabled:border-greyColor disabled:bg-greyColor">
       добавить тикер
   </button>
 </template>
 
+
 <script>
-  export default {
+  import { defineComponent } from 'vue'
+
+  export default defineComponent({
     name: 'add-ticker-button',
 
-    emits: {
-      'addTickerEmit': null
-    },
+    setup(props, { emit }) {
     
-    methods: {
-      addTickerEmit() {
-        this.$emit('addTickerEmit')
-      }
+    const addTickerEmit = () => {
+      emit('addTickerEmit')
     }
-  }
+
+      return { addTickerEmit }
+    }
+  })
 </script>
-
-<style scoped>
-	.btn_convert {
-		text-transform: uppercase;
-		padding: 8px 16px;
-		border: 2px solid var(--main-green);
-		cursor: pointer;
-		background-color: var(--main-green);
-		color: var(--white-color);
-		border-radius: 2px;
-		font-size: 16px;
-	}
-
-	.btn_convert:hover {
-		transition: all 0.3s;
-		border: 2px solid var(--light-green);
-		background-color: var(--light-green);
-	}
-
-  .btn_convert:disabled {
-    cursor: not-allowed;
-    border: 2px solid var(--grey-color);
-		background-color: var(--grey-color);
-  }
-</style>

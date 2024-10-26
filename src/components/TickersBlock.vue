@@ -1,6 +1,6 @@
 
 <template>
-  <div class="tickers_wrapper">
+  <div class="w-full flex justify-center flex-wrap mx-auto mt-1.5">
     <div 
       v-for="(ticker, index) in tickerList" 
       :key="index">
@@ -9,56 +9,23 @@
           :ticker="ticker"
           :sameTicker="sameTicker"
           @deleteTicker="deleteTicker"/>
-
     </div>
   </div>
 </template>
 
 
 
-<script>
+<script setup>
   import TickerElement from '@/components/TickerElement.vue'
 
-  export default {
-    components: { 
-      TickerElement
-    },
+  const props = defineProps({
+    tickerList: Array,
+    sameTicker: String
+  })
 
-		props: {
-      tickerList: { 
-        type: Array,
-        required: true
-      },
+  const emit = defineEmits(['deleteTicker'])
 
-      sameTicker: {
-        type: String,
-        required: true
-      }
-		},
-
-    emits: [
-      'deleteTicker'
-    ],
-
-    methods: {
-      deleteTicker(tickerName) {
-        this.$emit('deleteTicker', tickerName)
-      }
-    }    
-    
+  const deleteTicker = (tickerName) => {
+    emit('deleteTicker', tickerName)
   }
-
 </script>
-
-
-
-<style scoped>
-  .tickers_wrapper {
-    margin: 0 auto;
-    margin-top: 5px;
-    width: 822px;
-    display: flex;
-    justify-content: left;
-    flex-wrap: wrap;
-  }
-</style>

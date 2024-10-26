@@ -1,16 +1,16 @@
 <template>
   <input 
     :value="modelValue"
-    @input="UpdateModelValue($event.target.value)"
+    @input="updateModelValue($event.target.value)"
     @keydown.enter="addTickerEmit"
-    class="my_input"
+    class="my_input w-48 border-0 outline-none p-1 m-1.5 text-lg text-left text-mainGreen placeholder:text-center"
     type="text">
 </template>
 
 <script>
-  export default {
-    name: 'my-input',
+  import { defineComponent } from 'vue'
 
+  export default defineComponent({
     props: {
       modelValue: {
         type: String,
@@ -18,35 +18,19 @@
       }
     },
 
-    emits: {
-      'update:modelValue': null,
-      'addTickerEmit': null
-    },
+    name: 'my-input',
 
-    methods: {
-      UpdateModelValue(event) {
-        this.$emit('update:modelValue', event)
-      },
-      
-      addTickerEmit() {
-        this.$emit('addTickerEmit')
-      }
+    setup(props, { emit }) {
+
+    const updateModelValue = (event) => {
+      emit('update:modelValue', event)
     }
-  }
+    
+    const addTickerEmit = () => {
+      emit('addTickerEmit')
+    }
+
+      return { props, updateModelValue, addTickerEmit }
+    }
+  })
 </script>
-
-<style scoped>
-  .my_input {
-    width: 175px;
-    outline: none;
-    border: none;
-    font-size: 18px;
-    padding: 3px 5px;
-    color: var(--main-green);
-    text-align: left;
-  }
-
-	.my_input::placeholder {
-		color: var(--grey-color);
-	}
-</style>

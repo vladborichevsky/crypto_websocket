@@ -1,36 +1,31 @@
 <template>
-  <button @click="selectTicker" class="help_info_btn">
-    <slot></slot>
+  <button 
+    @click="selectTickerEmit"
+    @mouseenter="removeFocus()"
+    class="help_info_btn cursor-pointer bg-mainGreen mt-1.5 ml-1.5 mr-1.5 p-1 text-sm text-white sm:ml-0 lg:hover:bg-lightGreen focus:bg-lightGreen focus:outline-none"> 
+      <slot></slot>
   </button>
 </template>
 
+
 <script>
-  export default {
+  import { defineComponent } from 'vue'
+
+  export default defineComponent({
     name: 'help-info-button',
+    setup(props, { emit }) {
 
-    emits: {
-      'selectTicker': null
-    },
-    
-    methods: {
-      selectTicker() {
-        this.$emit('selectTicker')
+      const selectTickerEmit = () => {
+        emit('selectTickerEmit')
       }
+
+      const removeFocus = () => {
+        document.querySelectorAll('.help_info_btn')?.forEach(item => {
+          item.blur()
+        }) 
+      }
+
+      return { selectTickerEmit, removeFocus }
     }
-  }
+  })
 </script>
-
-<style scoped>
-	.help_info_btn {
-		margin: 10px 5px 0 0;
-		padding: 3px 5px;
-		color:var(--white-color);
-		font-size: 14px;
-		background-color: var(--light-green);
-		cursor: pointer;
-	}
-
-  .help_info_btn:hover {
-		background-color: var(--main-green);
-	}
-</style>

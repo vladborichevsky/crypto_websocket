@@ -1,11 +1,11 @@
 
 <template>
-	<div class="inputs_wrapper">
-		
+	<div class="w-fit flex flex-col justify-between items-center mx-auto mt-2.5 sm:flex-row">
 		<my-input
 			v-focus
 			v-model.trim='ticker'
 			@addTickerEmit="addTickerEmit"
+			@keyup.down="focusOnHelpBtns"
 			:title="title"
 			:placeholder="inputPlaceholder"/>
 
@@ -17,18 +17,20 @@
 		<add-ticker-button
 			v-else
 			@addTickerEmit="addTickerEmit"/>
-
 	</div>
 
 	<div 
 		v-if="ticker" 
-		class="help_info_wrapper">
+		class="w-72 min-h-10 mt-1.5 mx-auto flex justify-center sm:w-96 sm:justify-start">
 			<div 
 				v-for="(item, index) in filtredAvailableCoinList.slice(0, 3)" 
 				:key="index">
 					<help-info-button
 						v-if="helpInfoWrapper"
-						@selectTicker="selectTicker(item)">
+						@keyup.right="changeFocusOnNextHelpBtns(index)"
+						@keyup.left="changeFocusOnPrevHelpBtns(index)"
+						@keyup.up="focusOnInput"
+						@selectTickerEmit="selectTicker(item)">
 							{{ item }}
 					</help-info-button>
 			</div>
@@ -36,97 +38,78 @@
 
 	<div 
 		v-else 
-		class="non_existent_ticker_error">
+		class="min-h-10 mt-1.5 text-redColor">
 			{{ nonExistentTickerError }}
 	</div>
 </template>
 
 
 
-<script>
-  export default {
-		setup() {
-			const title = "Введите криптовалюту"
-			const inputPlaceholder = "BTC ETH LTC USDT"
+<script setup>
+	import { ref, computed } from 'vue'
 
-			return { title, inputPlaceholder }
-		}, 
+	const title = "Введите криптовалюту"
+	const inputPlaceholder = "BTC ETH LTC BCH"
 
-		props: {
-			nonExistentTickerError: {
-				type: String,
-				required: true
-			},
-			
-			availableCoinList: {
-				type: Array,
-				required: true
-			}
-		},
+	const ticker= ref('')
+	const helpInfoWrapper = ref(true)
 
-    emits: [
-      'addTickerEmit' 
-    ],
+	const filtredAvailableCoinList = computed(() => {
+		let result
 
-    data() {
-      return {
-        ticker: '',
-				helpInfoWrapper: true
-      }
-    },
-
-    methods: {
-      addTickerEmit() {
-        this.$emit('addTickerEmit', this.ticker.toUpperCase())
-				this.ticker = '' // очищаем инпут с переменной ticker
-				this.helpInfoWrapper = true
-      },
-
-			selectTicker(item) {
-				this.ticker = item
-				this.helpInfoWrapper = false
-			}
-    },
-		
-		computed: {
-			filtredAvailableCoinList() {
-				let result
-
-				if(this.ticker === '') {
-					result = []
-				} else {
-					result = this.availableCoinList.filter(item => item.includes(this.ticker.toLocaleUpperCase()))
-				}
-				
-				return result
-			}
+		if(ticker.value === '') {
+			result = []
+		} else {
+			result = props.availableCoinList.filter(item => item.includes(ticker.value.toLocaleUpperCase()))
 		}
-  }
 
+		return result
+	}) 
+
+	const props = defineProps({
+		nonExistentTickerError: String,
+		availableCoinList: Array
+	})
+
+	const emit = defineEmits(['addTickerEmit'])
+
+	const addTickerEmit = () => {
+		emit('addTickerEmit', ticker.value.toUpperCase())
+		ticker.value = '' // очищаем инпут с переменной ticker
+		helpInfoWrapper.value = true
+	}
+
+	const selectTicker = (item) => {
+		ticker.value = item
+		helpInfoWrapper.value = false
+		addTickerEmit()
+	}
+
+	// когда инпут в фокусе и уже появились какие-то кнопки с подсказками криптовалют, при нажатии на клавишу "вниз" фокус переходит на первую кнопку с подсказками
+	const focusOnHelpBtns = () => {
+		document.querySelector('.help_info_btn')?.focus()
+	}
+
+	// функция, которая переключает фокус кнопок подсказки на следующую
+	const changeFocusOnNextHelpBtns = (index) => {
+		if( (index + 1) == document.querySelectorAll('.help_info_btn').length) {
+			return false
+		} else {
+			document.querySelectorAll('.help_info_btn')[index + 1].focus()
+		}
+	}
+
+	// функция, которая переключает фокус кнопок подсказки на предыдущую
+	const changeFocusOnPrevHelpBtns = (index) => {
+		if( index == 0) {
+			return false
+		} else {
+			document.querySelectorAll('.help_info_btn')[index - 1].focus()
+		}
+	}
+
+	// когда фокус на одной из кнопок с подсказками и пользователь нажимает клавишу "вверх", то фокус возвращается в инпут
+	const focusOnInput = () => {
+		document.querySelector('.my_input').focus()
+	}
 </script>
-
-
-
-<style scoped>
-	.inputs_wrapper {
-		margin: 0 auto;
-		margin-top: 10px;
-		width: 400px;
-		display: flex;
-		justify-content: space-between;
-	}
-
-	.help_info_wrapper {
-		min-height: 50px;
-		margin: 0 auto;
-		width: 400px;
-		display: flex;
-		justify-content: left;
-	}
-
-	.non_existent_ticker_error {
-    min-height: 40px;
-		margin-top: 10px;
-    color: var(--red-color);
-  }
-</style>
